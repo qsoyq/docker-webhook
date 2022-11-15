@@ -19,5 +19,5 @@ jobs:
           cache: true
           cache_registry: aevea/cache
           tag: latest
-          build_file: Dockerfile
+          build_file: /github/actions-runner/_work/docker-webhook/docker-webhook/Dockerfile
 
