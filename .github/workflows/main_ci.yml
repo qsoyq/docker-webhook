@@ -17,4 +17,5 @@ jobs:
           cache: true
           cache_registry: aevea/cache
           tag: latest
+          build_file: Dockerfile
 
