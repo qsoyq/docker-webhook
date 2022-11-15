@@ -20,4 +20,4 @@ jobs:
           cache_registry: aevea/cache
           tag: latest
           build_file: /github/workspace/Dockerfile
-
+          path:  /github/workspace
