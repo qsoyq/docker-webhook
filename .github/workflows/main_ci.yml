@@ -21,4 +21,4 @@ jobs:
           tag: latest
           debug: true
           # build_file: /github/workspace/Dockerfile
-          # path: ""
+          path: /github/actions-runner/_work/docker-webhook/docker-webhook
