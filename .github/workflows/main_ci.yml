@@ -21,4 +21,4 @@ jobs:
           tag: latest
           debug: true
           # build_file: /github/workspace/Dockerfile
-          # path:  /github/workspace
+          path: ""
