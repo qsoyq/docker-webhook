@@ -1,0 +1,19 @@
+name: Docker build for release
+on:
+  release:
+    types: [published]
+
+jobs:
+  docker:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@master
+      - name: Kaniko build
+        uses: aevea/action-kaniko@master
+        with:
+          image: ${{ secrets.IMAGE }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          cache: true
+          cache_registry: aevea/cache
+          tag: ${{ github.ref_name }}
