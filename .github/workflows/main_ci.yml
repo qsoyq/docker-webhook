@@ -11,6 +11,7 @@ jobs:
       - name: dir
         run: pwd && ls      
       - name: Kaniko build
+        run: pwd && ls      
         uses: aevea/action-kaniko@master
         with:
           image: ${{ secrets.IMAGE }}
