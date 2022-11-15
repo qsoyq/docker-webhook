@@ -2,7 +2,7 @@ name: Docker build for main branch
 on:
   push:
     branches:
-      - 'main'
+      - 'ci'
 jobs:
   docker:
     runs-on: self-hosted
