@@ -24,8 +24,14 @@ pretty-errors = "^1.2.25"
 runlike = "^1.4.3"
 fastapi = "^0.86.0"
 uvicorn = "^0.17.0"
-sqlalchemy = "^1.4.44"
 types-sqlalchemy = "^1.4.53.7"
+
+aiosqlite = "^0.17.0"
+asyncpg = "^0.27.0"
+aiomysql = "^0.1.1"
+fastapi-users = {version = "^10.2.1", extras = ["sqlalchemy"]}
+sqlalchemy = {version = "^1.4.44", extras = ["asyncio"]}
+greenlet = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = [

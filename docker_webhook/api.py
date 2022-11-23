@@ -11,17 +11,9 @@ from sqlalchemy.orm import Session
 import docker_webhook.crud as crud
 import docker_webhook.schemas
 
-from docker_webhook.database import SessionLocal
+from docker_webhook.database import get_db
 
 router = APIRouter(prefix='/docker/webhook', tags=['docker-webhook'])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get('/links', response_model=docker_webhook.schemas.Links)
