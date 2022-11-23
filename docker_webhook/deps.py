@@ -2,14 +2,14 @@ from typing import Optional
 
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
-from fastapi_users.authentication import AuthenticationBackend, CookieTransport, JWTStrategy
+from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 
 from docker_webhook.models import User, get_user_db
 
 SECRET = "SECRET"
 expires_in = 3600 * 24 * 2
 
-auth_transport = CookieTransport(cookie_max_age=expires_in)
+auth_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 
 def get_strategy() -> JWTStrategy:
