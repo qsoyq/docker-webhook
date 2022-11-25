@@ -1,19 +1,22 @@
-from typing import Optional
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator, Optional
 
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
+from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
+from docker_webhook.database import async_session_maker
 from docker_webhook.models import User, get_user_db
 
-SECRET = "SECRET"
+USER_SECRET = "SECRET"
 expires_in = 3600 * 24 * 2
 
 auth_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 
 def get_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=expires_in)
+    return JWTStrategy(secret=USER_SECRET, lifetime_seconds=expires_in)
 
 
 auth_backend = AuthenticationBackend(
@@ -24,8 +27,8 @@ auth_backend = AuthenticationBackend(
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
-    reset_password_token_secret = SECRET
-    verification_token_secret = SECRET
+    reset_password_token_secret = USER_SECRET
+    verification_token_secret = USER_SECRET
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"User {user.id} has registered.")
@@ -39,3 +42,10 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
 
 async def get_user_manager(user_db=Depends(get_user_db)):
     yield UserManager(user_db)
+
+
+@asynccontextmanager
+async def user_manager_context() -> AsyncGenerator[UserManager, None]:
+    async with async_session_maker() as session:  # type: ignore
+        user_db = SQLAlchemyUserDatabase(session, User)
+        yield UserManager(user_db)

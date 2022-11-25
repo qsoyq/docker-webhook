@@ -1,3 +1,4 @@
+from fastapi import Depends
 import logging
 
 from enum import Enum
@@ -17,6 +18,7 @@ from docker_webhook.schemas import UserCreate, UserRead, UserUpdate
 
 cmd = typer.Typer()
 app = FastAPI()
+fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
 
 
 @app.on_event("startup")
@@ -28,11 +30,7 @@ def init_fastapi_users(app: FastAPI):
     auth_tags: Optional[List[Union[str, Enum]]] = ['auth']
     auth_prefix = '/auth'
     # fastapi-users
-    fastapi_users = FastAPIUsers[User,
-                                 int](
-                                     get_user_manager,
-                                     [auth_backend],
-                                 )
+
     app.include_router(fastapi_users.get_auth_router(auth_backend), prefix=f"{auth_prefix}/jwt", tags=auth_tags)
 
     app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix=auth_prefix, tags=auth_tags)
@@ -75,8 +73,8 @@ def http(
     logging.basicConfig(level=log_level)
     logging.info(f"http server listening on {host}:{port}")
     init_fastapi_users(app)
-    app.include_router(router)
-    uvicorn.run("docker_webhook.main:app", host=host, port=port, debug=debug, reload=reload)
+    app.include_router(router, dependencies=[Depends(fastapi_users.current_user(active=True, verified=True))])
+    uvicorn.run("docker_webhook.cli.main:app", host=host, port=port, debug=debug, reload=reload)
 
 
 def main():
