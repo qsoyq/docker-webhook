@@ -4,13 +4,14 @@ version = "0.0.1"
 description = ""
 authors = ["wangqs <wqs1639@gmail.com>"]
 
-repository = "repository"
+repository = "https://github.com/qsoyq/docker-webhook"
 
 [tool.poetry.build]
 generate-setup-file = false
 
 [tool.poetry.scripts]
-docker-webhook = "docker_webhook.main:main"
+docker-webhook = "docker_webhook.cli.main:main"
+superadmin = "docker_webhook.cli.superadmin:main"
 
 [[tool.poetry.source]]
 name = "aliyun"
@@ -24,8 +25,14 @@ pretty-errors = "^1.2.25"
 runlike = "^1.4.3"
 fastapi = "^0.86.0"
 uvicorn = "^0.17.0"
-sqlalchemy = "^1.4.44"
 types-sqlalchemy = "^1.4.53.7"
+
+aiosqlite = "^0.17.0"
+asyncpg = "^0.27.0"
+aiomysql = "^0.1.1"
+fastapi-users = {version = "^10.2.1", extras = ["sqlalchemy", "oauth"]}
+sqlalchemy = {version = "^1.4.44", extras = ["asyncio", "mypy"]}
+greenlet = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = [
@@ -60,6 +67,9 @@ pytest-asyncio = [
     {version =  "^0.19.0", python = ">=3.7"},
     {version = "^0.16.0", python = ">=3.6, <3.7"},
 ]
+
+[tool.poetry.group.dev.dependencies]
+sqlalchemy-stubs = "^0.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -128,7 +138,7 @@ ignore_patterns = [".venv/**/*.py", ".tox/**/*.py", "**/*.pxd", "**/*.pyx"]
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = false
-plugins = ["pydantic.mypy"]
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 exclude = ['^venv/', '^__init__\.py$']
 
 [[tool.mypy.overrides]]
