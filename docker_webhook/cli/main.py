@@ -1,4 +1,3 @@
-from fastapi import Depends
 import logging
 
 from enum import Enum
@@ -7,18 +6,18 @@ from typing import List, Optional, Union
 import typer
 import uvicorn
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi_users import FastAPIUsers
 
 from docker_webhook.api import router
 from docker_webhook.database import create_db_and_tables
-from docker_webhook.deps import auth_backend, get_user_manager
+from docker_webhook.deps import auth_backend, cookie_backend, get_user_manager
 from docker_webhook.models import User
 from docker_webhook.schemas import UserCreate, UserRead, UserUpdate
 
 cmd = typer.Typer()
 app = FastAPI()
-fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
+fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend, cookie_backend])
 
 
 @app.on_event("startup")
@@ -31,7 +30,18 @@ def init_fastapi_users(app: FastAPI):
     auth_prefix = '/auth'
     # fastapi-users
 
-    app.include_router(fastapi_users.get_auth_router(auth_backend), prefix=f"{auth_prefix}/jwt", tags=auth_tags)
+    app.include_router(
+        fastapi_users.get_auth_router(auth_backend,
+                                      requires_verification=True),
+        prefix=f"{auth_prefix}/jwt",
+        tags=auth_tags
+    )
+    app.include_router(
+        fastapi_users.get_auth_router(cookie_backend,
+                                      requires_verification=True),
+        prefix=f"{auth_prefix}/cookie",
+        tags=auth_tags
+    )
 
     app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix=auth_prefix, tags=auth_tags)
 

@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
+from typing import AsyncContextManager, AsyncGenerator, Callable, Optional
 
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
-from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
+from fastapi_users.authentication import AuthenticationBackend, BearerTransport, CookieTransport, JWTStrategy
 
 from docker_webhook.database import async_session_maker
 from docker_webhook.models import User, get_user_db
@@ -13,17 +12,27 @@ USER_SECRET = "SECRET"
 expires_in = 3600 * 24 * 2
 
 auth_transport = BearerTransport(tokenUrl='auth/jwt/login')
+bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+cookie_transport = CookieTransport('docker-webhook.user', cookie_max_age=3600)
 
 
-def get_strategy() -> JWTStrategy:
+def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=USER_SECRET, lifetime_seconds=expires_in)
 
 
-auth_backend = AuthenticationBackend(
+jwt_backend = AuthenticationBackend(
     name="jwt",
-    transport=auth_transport,
-    get_strategy=get_strategy,
+    transport=bearer_transport,
+    get_strategy=get_jwt_strategy,
 )
+
+cookie_backend = AuthenticationBackend(
+    name="cookie",
+    transport=cookie_transport,
+    get_strategy=get_jwt_strategy,
+)
+
+auth_backend = jwt_backend
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
@@ -44,8 +53,11 @@ async def get_user_manager(user_db=Depends(get_user_db)):
     yield UserManager(user_db)
 
 
+get_user_db_context: Callable[..., AsyncContextManager] = asynccontextmanager(get_user_db)
+
+
 @asynccontextmanager
 async def user_manager_context() -> AsyncGenerator[UserManager, None]:
     async with async_session_maker() as session:  # type: ignore
-        user_db = SQLAlchemyUserDatabase(session, User)
-        yield UserManager(user_db)
+        async with get_user_db_context(session) as user_db:
+            yield UserManager(user_db)
