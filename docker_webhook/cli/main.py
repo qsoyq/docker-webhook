@@ -1,8 +1,11 @@
+import imp
 import logging
 
 from enum import Enum
 from typing import List, Optional, Union
 
+import fastapi.applications
+import fastapi.openapi.docs
 import typer
 import uvicorn
 
@@ -12,8 +15,13 @@ from fastapi_users import FastAPIUsers
 from docker_webhook.api import router
 from docker_webhook.database import create_db_and_tables
 from docker_webhook.deps import auth_backend, cookie_backend, get_user_manager
+from docker_webhook.docs import add_mermaid_support
 from docker_webhook.models import User
 from docker_webhook.schemas import UserCreate, UserRead, UserUpdate
+
+fastapi.openapi.docs.get_swagger_ui_html = add_mermaid_support(fastapi.openapi.docs.get_swagger_ui_html)
+fastapi.openapi.docs.get_redoc_html = add_mermaid_support(fastapi.openapi.docs.get_redoc_html)
+imp.reload(fastapi.applications)
 
 cmd = typer.Typer()
 app = FastAPI()
